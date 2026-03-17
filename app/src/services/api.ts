@@ -2,7 +2,7 @@ import type { Product, Order } from '@/types';
 import { mockProducts } from './mockData';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
-const USE_MOCK_DATA = true; // Set to false when backend is deployed
+const USE_MOCK_DATA = !import.meta.env.VITE_API_URL;
 
 class ApiService {
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -133,9 +133,7 @@ class ApiService {
 
   async verifyToken(token: string): Promise<{ admin: any }> {
     return this.fetch('/auth/verify', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
   }
 }
