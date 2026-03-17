@@ -1,0 +1,77 @@
+require('dotenv').config();
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const Product = require('./models/Product');
+const Admin = require('./models/Admin');
+
+const products = [
+  // Live Chickens
+  { name: 'Live Broiler Chicken', price: 500, category: 'live-chicken', stock: 120, description: 'Healthy farm-raised broiler chicken weighing 1.8kg – 2.2kg. Perfect for home cooking or events.', image: '/images/broiler-chicken.jpg', weight: '1.8-2.2 kg', featured: true, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 10 },
+  { name: 'Kienyeji Chicken', price: 1000, category: 'live-chicken', stock: 40, description: 'Free-range indigenous Kenyan chicken with rich, natural flavor. Raised organically.', image: '/images/kienyeji-chicken.jpg', weight: '1.5-2.0 kg', featured: true, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+  { name: 'Layer Chicken', price: 700, category: 'live-chicken', stock: 30, description: 'Healthy egg-producing layer chicken ready for your backyard farm.', image: '/images/broiler-chicken.jpg', weight: '1.5-1.8 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 15, bulkDiscount: 8 },
+  { name: 'Cockerel Chicken', price: 600, category: 'live-chicken', stock: 25, description: 'Young male chicken suitable for breeding or meat production.', image: '/images/kienyeji-chicken.jpg', weight: '1.2-1.5 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 5 },
+  { name: 'Spent Layer Chicken', price: 450, category: 'live-chicken', stock: 50, description: 'Older layer chicken sold for meat. Great for soups and stews.', image: '/images/broiler-chicken.jpg', weight: '1.2-1.5 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 20, bulkDiscount: 15 },
+  // Eggs
+  { name: 'Tray of Layer Eggs (30)', price: 380, category: 'eggs', stock: 200, description: 'Fresh farm eggs from healthy layer chickens. Perfect for daily consumption.', image: '/images/layer-eggs.jpg', weight: '1.5 kg', featured: true, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 12 },
+  { name: 'Kienyeji Eggs Tray', price: 650, category: 'eggs', stock: 80, description: 'Organic indigenous chicken eggs with rich yellow yolks.', image: '/images/kienyeji-eggs.jpg', weight: '1.5 kg', featured: true, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 8 },
+  { name: 'Fertilized Eggs for Hatching', price: 900, category: 'eggs', stock: 60, description: 'Fertilized eggs suitable for incubation and hatching your own chicks.', image: '/images/layer-eggs.jpg', weight: '1.5 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 3, bulkDiscount: 5 },
+  // Chicks
+  { name: 'Day Old Broiler Chicks', price: 120, category: 'chicks', stock: 300, description: 'Vaccinated broiler chicks ready for brooding. High growth rate.', image: '/images/broiler-chicks.jpg', weight: '40-50g', featured: true, bulkAvailable: true, bulkMinQuantity: 50, bulkDiscount: 10 },
+  { name: 'Day Old Layer Chicks', price: 110, category: 'chicks', stock: 250, description: 'High-quality layer chicks for egg production. Vaccinated and healthy.', image: '/images/layer-chicks.jpg', weight: '35-45g', featured: false, bulkAvailable: true, bulkMinQuantity: 50, bulkDiscount: 8 },
+  { name: 'Day Old Kienyeji Chicks', price: 150, category: 'chicks', stock: 180, description: 'Indigenous Kenyan kienyeji chicks. Hardy and disease resistant.', image: '/images/kienyeji-chicks.jpg', weight: '30-40g', featured: true, bulkAvailable: true, bulkMinQuantity: 30, bulkDiscount: 5 },
+  { name: 'Two Week Old Broiler Chicks', price: 200, category: 'chicks', stock: 120, description: 'Broiler chicks ready for farm rearing. Already vaccinated.', image: '/images/broiler-chicks.jpg', weight: '150-200g', featured: false, bulkAvailable: true, bulkMinQuantity: 30, bulkDiscount: 8 },
+  { name: 'One Month Old Grower Chickens', price: 350, category: 'chicks', stock: 90, description: 'Growing chickens suitable for farmers. Ready for finishing.', image: '/images/kienyeji-chicks.jpg', weight: '400-500g', featured: false, bulkAvailable: true, bulkMinQuantity: 20, bulkDiscount: 10 },
+  // Processed
+  { name: 'Whole Dressed Chicken', price: 750, category: 'processed', stock: 70, description: 'Fresh cleaned chicken ready for cooking. Hygienically processed.', image: '/images/dressed-chicken.jpg', weight: '1.5-1.8 kg', featured: true, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 10 },
+  { name: 'Chicken Wings (1kg)', price: 550, category: 'processed', stock: 60, description: 'Fresh chicken wings packed per kilogram. Perfect for frying or grilling.', image: '/images/chicken-wings.jpg', weight: '1 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 8 },
+  { name: 'Chicken Drumsticks (1kg)', price: 600, category: 'processed', stock: 65, description: 'Premium chicken drumsticks. Great for roasting or frying.', image: '/images/chicken-drumsticks.jpg', weight: '1 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 8 },
+  { name: 'Chicken Breast (1kg)', price: 700, category: 'processed', stock: 50, description: 'Boneless chicken breast. Lean and healthy protein source.', image: '/images/chicken-breast.jpg', weight: '1 kg', featured: true, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+  { name: 'Chicken Thighs (1kg)', price: 620, category: 'processed', stock: 55, description: 'Fresh chicken thighs. Juicy and flavorful.', image: '/images/chicken-thighs.jpg', weight: '1 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 8 },
+  // Manure
+  { name: 'Chicken Manure (50kg Bag)', price: 250, category: 'manure', stock: 150, description: 'Organic poultry manure for farming. Excellent natural fertilizer.', image: '/images/chicken-manure.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 10, bulkDiscount: 15 },
+  { name: 'Composted Poultry Manure', price: 300, category: 'manure', stock: 100, description: 'Processed manure suitable for organic farming. Ready to use.', image: '/images/chicken-manure.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 10 },
+  // Feeds
+  { name: 'Chick Mash Feed (50kg)', price: 3200, category: 'feeds', stock: 40, description: 'Starter feed for young chicks. High protein content for growth.', image: '/images/chick-mash.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+  { name: 'Grower Mash Feed (50kg)', price: 3000, category: 'feeds', stock: 50, description: 'Feed for growing chickens. Balanced nutrition.', image: '/images/chick-mash.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+  { name: 'Layer Mash Feed (50kg)', price: 3100, category: 'feeds', stock: 60, description: 'Feed for egg-producing chickens. Enhanced with calcium.', image: '/images/chick-mash.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+  { name: 'Broiler Starter Feed (50kg)', price: 3300, category: 'feeds', stock: 45, description: 'Starter feed for broiler chicks. High protein for rapid growth.', image: '/images/chick-mash.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+  { name: 'Broiler Finisher Feed (50kg)', price: 3400, category: 'feeds', stock: 45, description: 'Feed for finishing broiler chickens. Optimal weight gain formula.', image: '/images/chick-mash.jpg', weight: '50 kg', featured: false, bulkAvailable: true, bulkMinQuantity: 5, bulkDiscount: 5 },
+];
+
+const admin = {
+  name: 'Sunrise Kuku Admin',
+  email: 'admin@sunrisekuku.co.ke',
+  password: 'Admin@2024',
+  role: 'admin',
+  isActive: true,
+};
+
+async function seed() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB connected');
+
+    // Clear existing data
+    await Product.deleteMany({});
+    await Admin.deleteMany({});
+    console.log('Cleared existing products and admins');
+
+    // Seed products
+    const inserted = await Product.insertMany(products);
+    console.log(`✓ Seeded ${inserted.length} products`);
+
+    // Seed admin (password hashed via pre-save hook)
+    const newAdmin = new Admin(admin);
+    await newAdmin.save();
+    console.log(`✓ Created admin: ${admin.email} / password: ${admin.password}`);
+
+    console.log('\nSeeding complete!');
+  } catch (err) {
+    console.error('Seed error:', err);
+  } finally {
+    await mongoose.disconnect();
+    process.exit(0);
+  }
+}
+
+seed();
