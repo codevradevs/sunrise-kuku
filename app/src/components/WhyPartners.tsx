@@ -1,4 +1,4 @@
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, type Variants } from 'framer-motion';
 import { useRef } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -26,7 +26,7 @@ const cards = [
   },
 ];
 
-const slideVariants = {
+const slideVariants: Variants = {
   hidden: (i: number) => ({
     opacity: 0,
     x: i % 2 === 0 ? -60 : 60,
@@ -34,7 +34,7 @@ const slideVariants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { duration: 0.7, delay: i * 0.15, ease: 'easeOut' },
+    transition: { duration: 0.7, delay: i * 0.15, ease: 'easeOut' as const },
   }),
 };
 

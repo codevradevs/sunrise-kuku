@@ -3,14 +3,6 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Play, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const collage = [
-  { src: '/images/broiler-chicken.jpg',    label: 'Live Chicken',   span: 'row-span-2' },
-  { src: '/images/layer-eggs.jpg',         label: 'Fresh Eggs',     span: '' },
-  { src: '/images/dressed-chicken.jpg',    label: 'Processed',      span: '' },
-  { src: '/images/kienyeji-chicks.jpg',    label: 'Day-old Chicks', span: '' },
-  { src: '/images/chicken-breast.jpg',     label: 'Chicken Cuts',   span: '' },
-];
-
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
